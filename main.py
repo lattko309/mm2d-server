@@ -1,8 +1,12 @@
 import re
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
 from datetime import datetime
 import pytz
 from fastapi import FastAPI
 from playwright.async_api import async_playwright
+from pathlib import Path
 
 # ===========================================
 # FastAPI Config
@@ -12,6 +16,22 @@ app = FastAPI(
     title="Myanmar 2D API Server",
     version="4.0.0"
 )
+
+# ===========================================
+# Firebase
+# ===========================================
+
+# ===========================================
+# Firebase
+# ===========================================
+
+BASE_DIR = Path(__file__).resolve().parent
+KEY_PATH = BASE_DIR.parent / "tools" / "serviceAccountKey.json"
+
+cred = credentials.Certificate(str(KEY_PATH))
+firebase_admin.initialize_app(cred)
+
+db = firestore.client()
 
 TIMEZONE = pytz.timezone("Asia/Bangkok")
 SET_URL = "https://www.set.or.th/en/market/index/set/overview"
@@ -34,6 +54,16 @@ def market_status(now: datetime):
             "session": None,
             "isFinal": False
         }
+
+        # ===========================================
+        # Firestore
+        # ===========================================
+
+        def save_live_result(data):
+
+            db.collection("live").document("current").set(data)
+
+            print("Firestore Updated")
 
     minutes = now.hour * 60 + now.minute
 
@@ -75,6 +105,15 @@ def market_status(now: datetime):
         "isFinal": False
     }
 
+# ===========================================
+# Firestore
+# ===========================================
+
+def save_live_result(data):
+
+    db.collection("live").document("current").set(data)
+
+    print("Firestore Updated")
 # ===========================================
 # Fetch SET Data
 # ===========================================
@@ -156,33 +195,51 @@ async def fetch_set_data():
             print("SET Value :", set_value)
             print("=================================")
 
-            return {
-                "setIndex": set_index,
-                "setValue": set_value,
-                "source": "playwright_rendered_page"
-            }
+
+
 
             with open("body.txt", "w", encoding="utf-8") as f:
                 f.write(body)
 
             print("body.txt saved")
 
-            # SET Index နှင့် Value ကို Body Text မှ Regex ဖြင့် ရှာဖွေခြင်း (ဥပမာ Parsing)
-            # SET Text Structure ထဲမှ ကိန်းဂဏန်းထုတ်ယူသည့် Pattern
-            set_index = 0.0
-            set_value = 0.0
-
-            # "SET" စာသားနောက်မှ Value များကို ဖမ်းယူခြင်း
-            match = re.search(r"SET\s+([\d,]+\.\d{2})\s+.*?\s+([\d,]+\.\d{2})", body)
-            if match:
-                set_index = float(match.group(1).replace(",", ""))
-                set_value = float(match.group(2).replace(",", ""))
+            print("RETURNING:")
+            print(set_index)
+            print(set_value)
 
             return {
                 "setIndex": set_index,
                 "setValue": set_value,
                 "source": "playwright_rendered_page"
             }
+
+#             return {
+#                 "setIndex": set_index,
+#                 "setValue": set_value,
+#                 "source": "playwright_rendered_page"
+#             }
+
+#             with open("body.txt", "w", encoding="utf-8") as f:
+#                 f.write(body)
+#
+#             print("body.txt saved")
+#
+#             # SET Index နှင့် Value ကို Body Text မှ Regex ဖြင့် ရှာဖွေခြင်း (ဥပမာ Parsing)
+#             # SET Text Structure ထဲမှ ကိန်းဂဏန်းထုတ်ယူသည့် Pattern
+#             set_index = 0.0
+#             set_value = 0.0
+#
+#             # "SET" စာသားနောက်မှ Value များကို ဖမ်းယူခြင်း
+#             match = re.search(r"SET\s+([\d,]+\.\d{2})\s+.*?\s+([\d,]+\.\d{2})", body)
+#             if match:
+#                 set_index = float(match.group(1).replace(",", ""))
+#                 set_value = float(match.group(2).replace(",", ""))
+#
+#             return {
+#                 "setIndex": set_index,
+#                 "setValue": set_value,
+#                 "source": "playwright_rendered_page"
+#             }
 
         finally:
             await context.close()
@@ -232,12 +289,14 @@ async def live():
     try:
         market = await fetch_set_data()
 
+        print(market)
+
         result = calculate_2d(
             market["setIndex"],
             market["setValue"]
         )
 
-        return {
+        response = {
             "status": "success",
             "date": now.strftime("%Y-%m-%d"),
             "serverTime": now.strftime("%H:%M:%S"),
@@ -251,6 +310,10 @@ async def live():
             "isFinal": status["isFinal"],
             "source": market["source"]
         }
+
+        save_live_result(response)
+
+        return response
 
     except Exception as e:
         return {
