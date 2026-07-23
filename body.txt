@@ -1,0 +1,220 @@
+ SET50
+Open2
+Last  1,084.76
+-1.69
+(-0.16%)
+ 
+Value (M.Baht) 40,847.06
+Volume ('000 Shares) 1,228,670
+Last Update 23 Jul 2026 14:35:40
+EN
+Search Symbol
+/ Factsheet
+SET Member
+Market Data
+Issuer Services
+Rules and Regulations
+Services
+Research
+About SET
+Home
+Market
+Index
+SET
+ Overview
+SET Index Series
+SET
+Index
+1,641.57
++2.23
+(+0.14%)
+Market Status : Open2
+Last Update 23 Jul 2026 14:35:40
+Open 1,644.83
+High 1,648.63
+Low 1,638.81
+Volume ('000 Shares) 7,580,251
+Value (M.Baht) 54,473.18
+SET
+SET50
+SET50FF
+SET100
+SET100FF
+sSET
+SETCLMV
+SETHD
+SETESG
+SETWB
+mai
+FTSE SET
+FTSE ASEAN
+TRI
+SET Industry Group and Sector Index
+Last Update 23 Jul 2026 14:35:40
+Collapse All
+Industry Group/Sector	Last	Change	% Change	Volume (Shares)	Value ('000 Baht)
+
+
+AGRO
+- Agro & Food Industry
+	335.22	+1.78	+0.53	206,487,600	2,454,199.05
+
+AGRI
+- Agribusiness
+	214.53	+0.92	+0.43	30,127,500	364,413.26
+
+FOOD
+- Food & Beverage
+	9,331.70	+50.70	+0.55	176,360,100	2,089,785.80
+
+CONSUMP
+- Consumer Products
+	46.34	-0.16	-0.34	12,781,900	100,594.11
+
+FASHION
+- Fashion
+	496.68	-6.30	-1.25	5,657,000	68,870.07
+
+HOME
+- Home & Office Products
+	16.03	-0.03	-0.19	3,487,500	3,958.63
+
+PERSON
+- Personal Products & Pharmaceuticals
+	80.29	+0.12	+0.15	3,637,400	27,765.41
+
+FINCIAL
+- Financials
+	187.44	+1.46	+0.79	612,065,200	15,521,941.53
+
+BANK
+- Banking
+	607.92	+7.32	+1.22	393,565,100	12,472,345.79
+
+FIN
+- Finance & Securities
+	2,274.08	-33.70	-1.46	212,540,700	2,964,483.73
+
+INSUR
+- Insurance
+	9,990.42	+2.68	+0.03	5,959,400	85,112.02
+
+INDUS
+- Industrials
+	73.75	-0.16	-0.22	131,755,200	3,255,056.43
+
+AUTO
+- Automotive
+	342.38	+0.49	+0.14	14,951,300	52,641.77
+
+IMM
+- Industrial Materials & Machinery
+	24.24	-0.09	-0.37	5,833,200	18,148.94
+
+PAPER
+- Paper & Printing Materials
+	2,334.90	-14.06	-0.60	906,600	7,520.76
+
+PETRO
+- Petrochemicals & Chemicals
+	715.79	-2.12	-0.30	82,516,100	2,849,891.75
+
+PKG
+- Packaging
+	3,136.73	-18.99	-0.60	18,556,800	315,713.45
+
+STEEL
+- Steel and Metal Products
+	20.49	+0.41	+2.04	8,990,200	11,114.26
+
+PROPCON
+- Property & Construction
+	83.63	-0.37	-0.44	435,237,200	3,479,981.90
+
+CONMAT
+- Construction Materials
+	6,409.13	-23.25	-0.36	34,718,000	1,550,045.47
+
+PROP
+- Property Development
+	180.87	-1.13	-0.62	302,348,500	1,161,419.37
+
+PF&REIT
+- Property Fund & REITs
+	146.73	-0.38	-0.26	10,916,800	104,034.31
+
+CONS
+- Construction Services
+	47.09	-0.06	-0.13	87,253,600	664,455.64
+
+RESOURC
+- Resources
+	187.96	-0.32	-0.17	591,754,700	11,279,559.13
+
+ENERG
+- Energy & Utilities
+	21,438.47	-36.32	-0.17	591,754,700	11,279,559.13
+
+MINE
+- Mining
+	4.78	-	-	-	-
+
+SERVICE
+- Services
+	303.93	-3.60	-1.17	503,867,500	5,344,911.63
+
+COMM
+- Commerce
+	21,273.42	-157.97	-0.74	75,563,900	1,080,747.92
+
+HELTH
+- Health Care Services
+	4,373.02	-6.24	-0.14	50,679,100	769,213.39
+
+MEDIA
+- Media & Publishing
+	16.81	+0.05	+0.30	134,680,300	173,208.84
+
+PROF
+- Professional Services
+	129.49	+1.36	+1.06	33,792,000	22,424.23
+
+TOURISM
+- Tourism & Leisure
+	431.90	-14.32	-3.21	74,992,000	1,198,075.96
+
+TRANS
+- Transportation & Logistics
+	239.91	-4.72	-1.93	134,183,300	2,101,751.28
+
+TECH
+- Technology
+	653.79	+5.24	+0.81	287,117,200	8,821,033.81
+
+ETRON
+- Electronic Components
+	35,024.66	+634.93	+1.85	96,332,900	5,064,323.97
+
+ICT
+- Information & Communication Technology
+	233.10	-3.01	-1.27	190,776,100	3,756,314.96
+Remark
+Market data provided for educational purpose or personal use only, not intended for trading purpose.
+Volume/value included volume/value from Auto Matching, Trade Report, and Odd Lot
+The contents contained in this website are provided for informative and educational purpose only. SET does not make any representations and hereby disclaims with respect to this website.
+      
+Contact Us
+Careers
+FAQ
+SET Contact Center
++66 2009 9999
+SET Group Websites 
+Links 
+Sitemap 
+Terms & Conditions of Use |
+Privacy Center |
+Cookies Policy |
+Third Party Terms
+© Copyright 2022 The Stock Exchange of Thailand
+The Stock Exchange Group uses cookies to offer you the best user experiences on the websites and applications of the Stock Exchange Group and to help enhance the effectiveness on the use. You may study additional details at Cookies Policy.
+Accept
