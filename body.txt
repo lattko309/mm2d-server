@@ -1,12 +1,12 @@
  SET
 Closed
-Last  1,641.03
-+1.69
-(+0.10%)
+Last 1,641.03
+-
+(-)
  
-Value (M.Baht) 86,809.37
-Volume ('000 Shares) 10,795,805
-Last Update 23 Jul 2026 22:56:50
+Value (M.Baht) -
+Volume ('000 Shares) -
+Last Update 24 Jul 2026 08:16:28
 EN
 Search Symbol
 / Factsheet
@@ -26,15 +26,15 @@ SET Index Series
 SET
 Index
 1,641.03
-+1.69
-(+0.10%)
+-
+(-)
 Market Status : Closed
-Last Update 23 Jul 2026 22:56:50
-Open 1,644.83
-High 1,648.63
-Low 1,634.71
-Volume ('000 Shares) 10,795,805
-Value (M.Baht) 86,809.37
+Last Update 24 Jul 2026 08:16:28
+Open -
+High -
+Low -
+Volume ('000 Shares) -
+Value (M.Baht) -
 SET
 SET50
 SET50FF
@@ -50,110 +50,110 @@ FTSE SET
 FTSE ASEAN
 TRI
 SET Industry Group and Sector Index
-Last Update 23 Jul 2026 22:56:50
+Last Update 24 Jul 2026 08:16:28
 Collapse All
 Industry Group/Sector	Last	Change	% Change	Volume (Shares)	Value ('000 Baht)
 
 
 AGRO
 - Agro & Food Industry
-	334.80	+1.36	+0.41	298,287,000	3,640,386.23
+	334.80	-	-	-	-
 
 AGRI
 - Agribusiness
-	214.73	+1.12	+0.52	46,939,400	572,222.63
+	214.73	-	-	-	-
 
 FOOD
 - Food & Beverage
-	9,317.81	+36.81	+0.40	251,347,600	3,068,163.60
+	9,317.81	-	-	-	-
 
 CONSUMP
 - Consumer Products
-	46.38	-0.12	-0.26	17,968,700	142,865.22
+	46.38	-	-	-	-
 
 FASHION
 - Fashion
-	497.15	-5.83	-1.16	6,487,000	78,660.57
+	497.15	-	-	-	-
 
 HOME
 - Home & Office Products
-	16.12	+0.06	+0.37	3,822,600	4,278.94
+	16.12	-	-	-	-
 
 PERSON
 - Personal Products & Pharmaceuticals
-	80.31	+0.14	+0.17	7,659,100	59,925.71
+	80.31	-	-	-	-
 
 FINCIAL
 - Financials
-	187.69	+1.71	+0.92	905,061,100	24,308,556.09
+	187.69	-	-	-	-
 
 BANK
 - Banking
-	608.50	+7.90	+1.32	571,172,100	20,215,023.20
+	608.50	-	-	-	-
 
 FIN
 - Finance & Securities
-	2,275.41	-32.37	-1.40	317,338,800	3,891,991.01
+	2,275.41	-	-	-	-
 
 INSUR
 - Insurance
-	10,051.53	+63.79	+0.64	16,550,200	201,541.88
+	10,051.53	-	-	-	-
 
 INDUS
 - Industrials
-	74.09	+0.18	+0.24	192,544,000	4,679,934.14
+	74.09	-	-	-	-
 
 AUTO
 - Automotive
-	341.25	-0.64	-0.19	20,285,900	85,778.32
+	341.25	-	-	-	-
 
 IMM
 - Industrial Materials & Machinery
-	24.26	-0.07	-0.29	11,246,300	35,995.41
+	24.26	-	-	-	-
 
 PAPER
 - Paper & Printing Materials
-	2,320.83	-28.13	-1.20	1,449,600	11,979.84
+	2,320.83	-	-	-	-
 
 PETRO
 - Petrochemicals & Chemicals
-	720.63	+2.72	+0.38	116,088,000	3,987,775.23
+	720.63	-	-	-	-
 
 PKG
 - Packaging
-	3,156.63	+0.91	+0.03	30,665,700	541,894.75
+	3,156.63	-	-	-	-
 
 STEEL
 - Steel and Metal Products
-	20.39	+0.31	+1.54	12,808,500	16,510.59
+	20.39	-	-	-	-
 
 PROPCON
 - Property & Construction
-	83.29	-0.71	-0.85	714,901,100	5,786,468.95
+	83.29	-	-	-	-
 
 CONMAT
 - Construction Materials
-	6,391.06	-41.32	-0.64	67,830,200	2,548,338.78
+	6,391.06	-	-	-	-
 
 PROP
 - Property Development
-	179.55	-2.45	-1.35	484,779,700	2,089,310.77
+	179.55	-	-	-	-
 
 PF&REIT
 - Property Fund & REITs
-	147.09	-0.02	-0.01	15,797,200	151,985.20
+	147.09	-	-	-	-
 
 CONS
 - Construction Services
-	46.91	-0.24	-0.51	146,494,000	996,834.20
+	46.91	-	-	-	-
 
 RESOURC
 - Resources
-	188.39	+0.11	+0.06	884,130,200	18,380,164.16
+	188.39	-	-	-	-
 
 ENERG
 - Energy & Utilities
-	21,488.30	+13.51	+0.06	884,130,200	18,380,164.16
+	21,488.30	-	-	-	-
 
 MINE
 - Mining
@@ -161,43 +161,43 @@ MINE
 
 SERVICE
 - Services
-	302.41	-5.12	-1.66	927,123,700	11,121,589.82
+	302.41	-	-	-	-
 
 COMM
 - Commerce
-	21,239.16	-192.23	-0.90	139,929,200	1,997,180.14
+	21,239.16	-	-	-	-
 
 HELTH
 - Health Care Services
-	4,336.86	-42.40	-0.97	117,887,500	1,988,918.89
+	4,336.86	-	-	-	-
 
 MEDIA
 - Media & Publishing
-	17.03	+0.27	+1.61	236,911,200	552,414.60
+	17.03	-	-	-	-
 
 PROF
 - Professional Services
-	128.68	+0.55	+0.43	43,894,500	47,204.04
+	128.68	-	-	-	-
 
 TOURISM
 - Tourism & Leisure
-	426.86	-19.36	-4.34	150,291,300	2,496,235.85
+	426.86	-	-	-	-
 
 TRANS
 - Transportation & Logistics
-	238.73	-5.90	-2.41	238,210,000	4,039,636.30
+	238.73	-	-	-	-
 
 TECH
 - Technology
-	654.72	+6.17	+0.95	433,894,900	13,326,592.76
+	654.72	-	-	-	-
 
 ETRON
 - Electronic Components
-	35,026.13	+636.40	+1.85	142,485,100	7,638,001.21
+	35,026.13	-	-	-	-
 
 ICT
 - Information & Communication Technology
-	234.03	-2.08	-0.88	291,409,800	5,688,591.55
+	234.03	-	-	-	-
 Remark
 Market data provided for educational purpose or personal use only, not intended for trading purpose.
 Volume/value included volume/value from Auto Matching, Trade Report, and Odd Lot

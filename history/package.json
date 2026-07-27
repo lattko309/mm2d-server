@@ -1,0 +1,12 @@
+{
+  "name": "live",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node live_updater.js"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "firebase-admin": "^14.2.0"
+  }
+}
