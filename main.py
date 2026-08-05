@@ -1,288 +1,193 @@
 import asyncio
-from datetime import datetime
 from contextlib import asynccontextmanager
-from pathlib import Path
-import re
-import traceback
-from zoneinfo import ZoneInfo
-
-import firebase_admin
+from datetime import datetime, timezone, timedelta
 from fastapi import FastAPI
+import firebase_admin
 from firebase_admin import credentials, firestore
-from playwright.async_api import async_playwright
+import httpx
 
-# ===========================================
-# Firebase Config
-# ===========================================
-
-BASE_DIR = Path(__file__).resolve().parent
-KEY_PATH = BASE_DIR.parent / "tools" / "serviceAccountKey.json"
-
-if not firebase_admin._apps:
-    cred = credentials.Certificate(str(KEY_PATH))
-    firebase_admin.initialize_app(cred)
-
+# --- 1. FIREBASE INITIALIZATION ---
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-TIMEZONE = ZoneInfo("Asia/Yangon")
-SET_URL = "https://www.set.or.th/en/market/index/set/overview"
+SESSION_TIME_TO_SUFFIX = {
+    "11:00:00": "1100",
+    "12:01:00": "1201",
+    "15:00:00": "1500",
+    "16:30:00": "1630",
+}
 
-# History သိမ်းပြီးသား Session များကို ခေတ္တမှတ်ထားရန် In-Memory Cache
-saved_history_keys = set()
-
-
-# ===========================================
-# Helper Functions
-# ===========================================
-
-
-def calculate_2d(index: float, value: float) -> str:
-    if index <= 0 or value <= 0:
-        return "--"
-
-    index_str = f"{index:.2f}"
-    index_digit = index_str.split(".")[1][-1]
-
-    value_str = f"{value:.2f}"
-    value_digit = value_str.split(".")[0][-1]
-
-    return f"{index_digit}{value_digit}"
+MORNING_FINAL_TIME = "12:01:00"
+EVENING_FINAL_TIME = "16:30:00"
 
 
-def market_status(now: datetime):
-    if now.weekday() >= 5:
-        return {"marketOpen": False, "session": None, "isFinal": False}
+def check_market_status():
+    utc_now = datetime.now(timezone.utc)
+    mm_time = utc_now + timedelta(hours=6, minutes=30)
 
-    minutes = now.hour * 60 + now.minute
+    if mm_time.weekday() >= 5:
+        return "CLOSED", "Weekend Holiday"
 
-    if 570 <= minutes < 721:
-        return {"marketOpen": True, "session": "LIVE-AM", "isFinal": False}
-    if 721 <= minutes < 780:
-        return {"marketOpen": True, "session": "12:01", "isFinal": True}
-    if 780 <= minutes < 990:
-        return {"marketOpen": True, "session": "LIVE-PM", "isFinal": False}
-    if 990 <= minutes <= 995:
-        return {"marketOpen": True, "session": "16:30", "isFinal": True}
+    current_seconds = mm_time.hour * 3600 + mm_time.minute * 60 + mm_time.second
 
-    return {"marketOpen": False, "session": None, "isFinal": False}
+    is_morning = (9 * 3600 + 30 * 60) <= current_seconds <= (12 * 3600 + 1 * 60)
+    is_evening = (14 * 3600) <= current_seconds <= (16 * 3600 + 30 * 60)
 
-
-# ===========================================
-# Firestore Functions
-# ===========================================
+    if is_morning or is_evening:
+        return "LIVE", ""
+    else:
+        return "CLOSED", "Outside Trading Hours"
 
 
-def save_live_result(data: dict):
+def _parse_number(value_str: str) -> float:
     try:
-        doc_ref = db.collection("live").document("current")
-        doc_ref.set(data)
-        print(
-            f"[{datetime.now().strftime('%H:%M:%S')}] ⚡ Live Updated -> 2D: {data['result']} | SET: {data['setIndex']} | Val: {data['setValue']}"
+        return float(str(value_str).replace(",", "").strip())
+    except (ValueError, TypeError):
+        return 0.0
+
+
+async def fetch_thaistock2d_live(client: httpx.AsyncClient) -> dict:
+    response = await client.get("https://api.thaistock2d.com/live", timeout=10.0)
+    response.raise_for_status()
+    return response.json()
+
+
+def _write_history_if_final(current_date_str: str, api_data: dict):
+    results = api_data.get("result", [])
+    for item in results:
+        open_time = item.get("open_time")
+        if open_time not in (MORNING_FINAL_TIME, EVENING_FINAL_TIME):
+            continue
+
+        suffix = SESSION_TIME_TO_SUFFIX.get(open_time)
+        if not suffix:
+            continue
+
+        # ⭐ FIX: API ရဲ့ "result" array ထဲမှာ open_time ကိုက်ညီပေမယ့်
+        # session က တကယ် confirm မဖြစ်သေးရင် (history_id == null
+        # ဒါမှမဟုတ် twod == "--") history ထဲကို write မလုပ်ရအောင်
+        # skip လုပ်ရန် (မဟုတ်ရင် setIndex:0/setValue:0/result:"--"
+        # ဆိုတဲ့ placeholder document တွေ အစောကြီး ဝင်လာနိုင်သည်)
+        twod_value = item.get("twod")
+        history_id = item.get("history_id")
+        is_confirmed = (
+            history_id is not None
+            and twod_value is not None
+            and str(twod_value).strip() != "--"
         )
-    except Exception as e:
-        print("Firestore Live Save Error:", e)
+        if not is_confirmed:
+            continue
+
+        doc_id = f"{current_date_str}-{suffix}"
+        session_label = "morning" if open_time == MORNING_FINAL_TIME else "evening"
+
+        history_doc = {
+            "date": current_date_str,
+            "session": open_time,
+            "sessionLabel": session_label,
+            "result": twod_value,
+            "setIndex": _parse_number(item.get("set")),
+            "setValue": _parse_number(item.get("value")),
+            "updatedAt": firestore.SERVER_TIMESTAMP,
+        }
+
+        db.collection("history").document(doc_id).set(history_doc, merge=True)
 
 
-def save_today_result(data: dict):
-    try:
-        session = data.get("session")
-        if not session or not data.get("isFinal"):
-            return
+async def background_fetcher():
+    print("🚀 Real Data Background Fetcher Started (thaistock2d.com)")
 
-        doc_ref = db.collection("today").document(session)
-        doc_ref.set({
-            "result": data["result"],
-            "setIndex": data["setIndex"],
-            "setValue": data["setValue"],
-            "updatedAt": data["serverTime"],
-        })
-    except Exception as e:
-        print("Today Save Error:", e)
+    consecutive_errors = 0
 
-
-def save_history_result(data: dict):
-    """Optimized History Save: Firestore Read ကို ၁ ကြိမ်သာ ပြုလုပ်မည်"""
-    try:
-        session = data.get("session")
-        if session not in ["12:01", "16:30"] or data["result"] == "--":
-            return
-
-        doc_id = f'{data["date"]}-{session.replace(":", "")}'
-
-        # ① Memory Cache ထဲတွင် ရှိနေပါက Firestore Read/Write ကို လုံးဝ မလုပ်ပါ
-        if doc_id in saved_history_keys:
-            return
-
-        doc_ref = db.collection("history").document(doc_id)
-
-        # Firestore ထဲတွင် ရှိပြီးသားလား ၁ ကြိမ်သာ စစ်ဆေးမည်
-        if doc_ref.get().exists:
-            saved_history_keys.add(doc_id)  # Memory တွင် မှတ်ထားမည်
-            return
-
-        doc_ref.set({
-            "date": data["date"],
-            "session": session,
-            "result": data["result"],
-            "setIndex": data["setIndex"],
-            "setValue": data["setValue"],
-            "year": int(data["date"][:4]),
-            "month": int(data["date"][5:7]),
-            "day": int(data["date"][8:10]),
-            "updatedAt": data["serverTime"],
-        })
-
-        saved_history_keys.add(doc_id)
-        print(f"📜 [OPTIMIZED] History Saved Successfully -> DocID: {doc_id}")
-
-    except Exception as e:
-        print("History Save Error:", e)
-
-
-# ===========================================
-# High-Speed Background Fetch Loop
-# ===========================================
-
-
-async def background_fetch_loop():
-    print("🚀 High-Speed & Resilient Background Fetcher Started")
-
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(
-            viewport={"width": 1600, "height": 900},
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        )
-        page = await context.new_page()
-
-        # Initial Page Load
-        try:
-            await page.goto(
-                SET_URL, wait_until="domcontentloaded", timeout=30000
-            )
-            await page.wait_for_timeout(2000)
-        except Exception as e:
-            print("Initial Page Load Error:", e)
-
+    async with httpx.AsyncClient(headers={"User-Agent": "Mozilla/5.0"}) as client:
         while True:
-            loop_start = asyncio.get_event_loop().time()
-            now = datetime.now(TIMEZONE)
-            status = market_status(now)
-
             try:
-                # ② Reload Fail ဖြစ်ပါက goto() ဖြင့် Re-connect လုပ်ပေးသော Logic
-                try:
-                    await page.reload(
-                        wait_until="domcontentloaded", timeout=10000
-                    )
-                except Exception as reload_err:
-                    print(
-                        f"⚠️ Reload failed ({reload_err}), attempting page.goto()..."
-                    )
-                    await page.goto(
-                        SET_URL, wait_until="domcontentloaded", timeout=20000
-                    )
+                mode, reason = check_market_status()
 
-                body_text = await page.locator("body").inner_text()
+                mm_now = datetime.now(timezone.utc) + timedelta(hours=6, minutes=30)
+                current_date_str = mm_now.strftime("%Y-%m-%d")
 
-                set_index = 0.0
-                set_value = 0.0
+                if mode == "CLOSED":
+                    print(f"💤 Market is CLOSED ({reason}).")
+                    closed_data = {
+                        "date": current_date_str,
+                        "mode": "CLOSED",
+                        "reason": reason,
+                        "serverTime": mm_now.strftime("%H:%M:%S"),
+                        "updatedAt": firestore.SERVER_TIMESTAMP,
+                    }
+                    db.collection("live").document("current").set(closed_data, merge=True)
 
-                # SET Index 解析
-                patterns = [
-                    r"SET\s+([\d,]+\.\d{2})",
-                    r"Last\s+([\d,]+\.\d{2})",
-                    r"Index\s+([\d,]+\.\d{2})",
-                    r"(1\d{3}\.\d{2})",
-                ]
-                for pat in patterns:
-                    m = re.search(pat, body_text, re.IGNORECASE)
-                    if m:
-                        val = float(m.group(1).replace(",", ""))
-                        if 1000.0 <= val <= 3000.0:
-                            set_index = val
-                            break
+                    # ⭐ FIX: CLOSED ဖြစ်နေရင်တောင် history ကို ဆက် check လုပ်ရန်လိုသည်
+                    # (LIVE window ရဲ့ boundary time (12:01:00 / 16:30:00) အတိအကျမှာ
+                    #  API ဘက်က confirmed result မထွက်သေးရင် history document က
+                    #  ထာဝရ ကျန်ရစ်ခဲ့နိုင်လို့ CLOSED အချိန်မှာလည်း စစ်ပေးရန် လိုအပ်ပါသည်)
+                    try:
+                        api_data_check = await fetch_thaistock2d_live(client)
+                        _write_history_if_final(current_date_str, api_data_check)
+                    except Exception as backfill_err:
+                        print(f"⚠️ Backfill check failed while CLOSED: {backfill_err}")
 
-                # SET Value 解析
-                val_match = re.search(
-                    r"Value\s*(?:\(M\.Baht\))?\s*[\r\n\s:]*([\d,]+\.\d{2})",
-                    body_text,
-                    re.IGNORECASE,
-                )
-                if val_match:
-                    set_value = float(val_match.group(1).replace(",", ""))
+                    await asyncio.sleep(300)
+                    continue
 
-                result = calculate_2d(set_index, set_value)
+                api_data = await fetch_thaistock2d_live(client)
+                consecutive_errors = 0
 
-                mode = (
-                    "CLOSED"
-                    if not status["marketOpen"]
-                    else ("OFFICIAL" if status["isFinal"] else "LIVE")
-                )
+                live_info = api_data.get("live", {})
+                real_set_index = _parse_number(live_info.get("set"))
+                real_set_value = _parse_number(live_info.get("value"))
+                calculated_result = live_info.get("twod", "--")
 
-                payload = {
-                    "status": "success",
-                    "date": now.strftime("%Y-%m-%d"),
-                    "serverTime": now.strftime("%H:%M:%S"),
-                    "timezone": "Asia/Yangon",
-                    "marketOpen": status["marketOpen"],
-                    "session": status["session"],
-                    "mode": mode,
-                    "result": result,
-                    "setIndex": set_index,
-                    "setValue": set_value,
-                    "isLive": not status["isFinal"],
-                    "isFinal": status["isFinal"],
-                    "source": "playwright_rendered_page",
+                live_data = {
+                    "date": current_date_str,
+                    "result": calculated_result,
+                    "setIndex": real_set_index,
+                    "setValue": real_set_value,
+                    "mode": "LIVE",
+                    "reason": "",
+                    "serverTime": mm_now.strftime("%H:%M:%S"),
+                    "sourceTime": live_info.get("time", ""),
+                    "updatedAt": firestore.SERVER_TIMESTAMP,
                 }
 
-                save_live_result(payload)
+                db.collection("live").document("current").set(live_data, merge=True)
+                print(f"📊 Live updated: set={real_set_index} value={real_set_value} twod={calculated_result}")
 
-                if status["isFinal"]:
-                    save_today_result(payload)
-                    save_history_result(payload)
+                _write_history_if_final(current_date_str, api_data)
 
+            except httpx.HTTPError as fetch_err:
+                consecutive_errors += 1
+                print(f"⚠️ Failed to fetch thaistock2d API (attempt {consecutive_errors}): {fetch_err}")
             except Exception as e:
-                print("Fetch Loop Iteration Error:", e)
+                consecutive_errors += 1
+                print(f"⚠️ Error in background task (attempt {consecutive_errors}): {e}")
 
-            # ၅ စက္ကန့် ပုံမှန် ပတ်စေရန် Calculation
-            elapsed = asyncio.get_event_loop().time() - loop_start
-            sleep_time = max(0.2, 2.0 - elapsed)
-            await asyncio.sleep(sleep_time)
+            if consecutive_errors >= 5:
+                print("🚨 5+ consecutive failures — check network / API status / serviceAccountKey.")
 
-
-# ===========================================
-# FastAPI Lifespan & Routes
-# ===========================================
+            await asyncio.sleep(10)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    task = asyncio.create_task(background_fetch_loop())
+    task = asyncio.create_task(background_fetcher())
     yield
     task.cancel()
 
 
-app = FastAPI(title="Myanmar 2D API Server", version="4.0.0", lifespan=lifespan)
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/")
-def root():
-    return {"status": "ok", "message": "Myanmar 2D API Server"}
-
-
-@app.get("/api/health")
-def health():
-    return {"status": "healthy"}
-
-
-@app.get("/api/2d-live")
-async def live():
-    try:
-        doc = db.collection("live").document("current").get()
-        if doc.exists:
-            return doc.to_dict()
-        else:
-            return {"status": "error", "message": "No live data available yet."}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+def read_root():
+    mode, reason = check_market_status()
+    mm_now = datetime.now(timezone.utc) + timedelta(hours=6, minutes=30)
+    return {
+        "status": "Server is running smoothly",
+        "market_mode": mode,
+        "reason": reason,
+        "current_date": mm_now.strftime("%Y-%m-%d"),
+        "current_time_mmt": mm_now.strftime("%H:%M:%S"),
+    }
